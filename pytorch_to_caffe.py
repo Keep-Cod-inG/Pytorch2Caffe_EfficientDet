@@ -220,8 +220,8 @@ def _max(raw,*args):
         log.cnet.add_layer(layer)
     return x
 
-def _cat(raw,inputs, dimension=0):
-    x=raw(inputs, dimension)
+def _cat(raw,inputs, dim=0):
+    x=raw(inputs, dim)
     bottom_blobs=[]
     for input in inputs:
         bottom_blobs.append(log.blobs(input))
@@ -229,7 +229,7 @@ def _cat(raw,inputs, dimension=0):
     top_blobs=log.add_blobs([x],name='cat_blob')
     layer=caffe_net.Layer_param(name=layer_name,type='Concat',
                                 bottom=bottom_blobs,top=top_blobs)
-    layer.param.concat_param.axis =dimension
+    layer.param.concat_param.axis =dim
     log.cnet.add_layer(layer)
     return x
 
@@ -413,7 +413,22 @@ def _interpolate(raw, input,size=None, scale_factor=None, mode='nearest', align_
     log.cnet.add_layer(layer)
     return x
 
+#pad layer
+def _pad(raw, input, para):
+    x = raw(input,para)
+    name = log.add_layer(name='Pad')
+    log.add_blobs([x], name='Pad_blob')
+    layer = caffe_net.Layer_param(name=name, type='Pad',
+                                  bottom=[log.blobs(input)], top=[log.blobs(x)])
+    layer.pad_param(type="ZERO", pad_l=para[0], pad_r=para[1], pad_t=para[2], pad_b=para[3])
+    log.cnet.add_layer(layer)
+    return x
 
+def _parameter(raw, *args):
+    # record a variable
+    x = raw(*args)
+    log.add_blobs([x], name='Edge_weights')
+    return x
 #sigmid layer
 def _sigmoid(raw, input):
     # Applies the element-wise function:
@@ -693,6 +708,8 @@ class Rp(object):
         return out
 
 
+nn.Parameter = Rp(nn.Parameter, _parameter)
+F.pad = Rp(F.pad,_pad)
 F.conv2d=Rp(F.conv2d,_conv2d)
 F.linear=Rp(F.linear,_linear)
 F.relu=Rp(F.relu,_relu)
@@ -713,6 +730,7 @@ F.tanh = Rp(F.tanh,_tanh)
 F.tanh = Rp(F.tanh,_tanh)
 F.hardtanh = Rp(F.hardtanh,_hardtanh)
 # F.l2norm = Rp(F.l2norm,_l2Norm)
+# nn.ReLU = Rp2(nn.ReLU, F.relu)
 
 torch.split=Rp(torch.split,_split)
 torch.max=Rp(torch.max,_max)

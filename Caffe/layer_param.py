@@ -32,6 +32,15 @@ class Layer_param():
         self.bottom=self.param.bottom
         self.bottom.extend(bottom)
 
+    def pad_param(self, type='ZERO', pad_l=0, pad_r=0, pad_t=0, pad_b=0,):
+        pad_param = pb.PadParameter()
+        pad_param.type = pad_param.PadType.Value(type)
+        pad_param.pad_l = pad_l
+        pad_param.pad_r = pad_r
+        pad_param.pad_t = pad_t
+        pad_param.pad_b = pad_b
+        self.param.pad_param.CopyFrom(pad_param)
+
     def fc_param(self, num_output, weight_filler='xavier', bias_filler='constant',has_bias=True):
         if self.type != 'InnerProduct':
             raise TypeError('the layer type must be InnerProduct if you want set fc param')
@@ -115,7 +124,7 @@ class Layer_param():
         pool_param.pool=pool_param.PoolMethod.Value(type)
         pool_param.kernel_size=pair_process(kernel_size)
         pool_param.stride=pair_process(stride)
-        pool_param.ceil_mode=ceil_mode
+        # pool_param.ceil_mode=ceil_mode
         if pad:
             if isinstance(pad,tuple):
                 pool_param.pad_h = pad[0]
@@ -147,12 +156,13 @@ class Layer_param():
     # }
     def upsample_param(self,size=None, scale_factor=None):
         upsample_param=pb.UpsampleParameter()
+        scale_factor = int(scale_factor)
         if scale_factor:
             if isinstance(scale_factor,int):
                 upsample_param.scale = scale_factor
             else:
-                upsample_param.scale_h = scale_factor[0]
-                upsample_param.scale_w = scale_factor[1]
+                upsample_param.scale_h = scale_factor #[0]
+                upsample_param.scale_w = scale_factor #[1]
 
         if size:
             if isinstance(size,int):

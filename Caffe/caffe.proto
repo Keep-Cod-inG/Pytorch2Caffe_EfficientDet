@@ -475,7 +475,7 @@ message ParamSpec {
 // NOTE
 // Update the next available ID when you add a new LayerParameter field.
 //
-// LayerParameter next available layer-specific ID: 143 (last added: scale_param)
+// LayerParameter next available layer-specific ID: 152 (last added: pad_param)
 
 message LayerParameter {
   optional string name = 1; // the layer name
@@ -578,6 +578,9 @@ message LayerParameter {
   optional ThresholdParameter threshold_param = 128;
   optional TileParameter tile_param = 138;
   optional WindowDataParameter window_data_param = 129;
+  
+  // added by Zyz
+  optional PadParameter pad_param = 151;
 
   // added by Me
   optional SpatialTransformerParameter st_param = 148;
@@ -920,6 +923,32 @@ message ExpansionParameter {
 
   // The ratio to expand the image.
   optional float max_expand_ratio = 2 [default = 1.];
+}
+
+// added by zyz
+message PadParameter {
+  // To pad, the bottom blob is copied to the middle of the top blob, which is
+  // larger on all four sides (ignoring dimensions before the last two) by the
+  // pad width. Those surrounding elements are set to some value, determined by
+  // the padtype. The restriction to the last two dimensions was for simplicity.
+  // Lifting that is a future project. Another generalization would be to allow
+  // the pad width to depend on the side of the image.
+  // The pad is configured by
+  // - `padtype` to choose how the padding is done
+  // - `pad` to set the width of the padding. It's the same for all four sides.
+  enum PadType {
+    ZERO = 0;
+    //REPLICATE = 1;
+    //REFLECT = 2;
+    //REFLECT_101 = 3;
+    // ODD = 4;
+    // ODD_101 = 5;
+  }
+  optional PadType type = 1 [default = ZERO]; // The padding method
+  optional uint32 pad_l = 2 [default = 0]; // Width of pad left
+  optional uint32 pad_r = 3 [default = 0]; // Width of pad right
+  optional uint32 pad_t = 4 [default = 0]; // Width of pad top
+  optional uint32 pad_b = 5 [default = 0]; // Width of pad bottom
 }
 
 //**************************************************************************************************
@@ -2372,4 +2401,3 @@ message ROIAlignParameter {
   optional uint32 pooled_w = 2 [default = 0]; // The pooled output width
   optional float spatial_scale = 3 [default = 1];
 }
-
